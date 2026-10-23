@@ -46,8 +46,15 @@
             <p class="text-brand-primary text-sm mb-6">Digite sua senha de acesso para gerenciar o catálogo.</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
-                <input type="password" id="adminPassword" placeholder="Senha de acesso" required
-                    class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark placeholder-brand-primary/50 text-center tracking-widest">
+                <!-- Campo de senha com o botão do olhinho -->
+                <div class="relative">
+                    <input type="password" id="adminPassword" placeholder="Senha de acesso" required
+                        class="w-full px-4 py-3 bg-brand-bg/65 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark placeholder-brand-primary/50 text-center tracking-widest pr-12">
+                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary hover:text-brand-dark transition">
+                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
+                    </button>
+                </div>
+
                 <button type="submit" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-3 rounded-xl font-medium transition shadow-sm">
                     Entrar no Painel
                 </button>
@@ -86,14 +93,12 @@
             <form id="productForm" onsubmit="saveProduct(event)" class="space-y-6">
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <!-- Nome do Produto -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome da Peça</label>
                         <input type="text" id="prodName" required placeholder="Ex: Vaso Geométrico Minimalista"
                             class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
                     </div>
 
-                    <!-- Categoria -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Categoria</label>
                         <select id="prodCategory" required
@@ -106,14 +111,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <!-- Preço Pix -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Pix (R$)</label>
                         <input type="number" step="0.01" id="prodPricePix" required placeholder="45.00"
                             class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
                     </div>
 
-                    <!-- Preço Cartão -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Cartão (R$)</label>
                         <input type="number" step="0.01" id="prodPriceCard" required placeholder="49.90"
@@ -121,7 +124,6 @@
                     </div>
                 </div>
 
-                <!-- Descrição -->
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Descrição da Peça</label>
                     <textarea id="prodDesc" rows="3" required placeholder="Descreva os detalhes da peça..."
@@ -129,14 +131,12 @@
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <!-- Tamanho / Medidas -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Tamanho e Dimensões</label>
                         <input type="text" id="prodSize" placeholder="Ex: Altura: 14cm | Diâmetro: 12cm"
                             class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
                     </div>
 
-                    <!-- Cuidados / Orientações -->
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Orientações e Cuidados</label>
                         <input type="text" id="prodCare" placeholder="Ex: Limpar apenas com pano levemente umedecido"
@@ -144,7 +144,6 @@
                     </div>
                 </div>
 
-                <!-- Links das Imagens -->
                 <div>
                     <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Links das Imagens (URLs separadas por vírgula)</label>
                     <textarea id="prodImages" rows="2" required placeholder="https://exemplo.com/foto1.jpg, https://exemplo.com/foto2.jpg"
@@ -152,7 +151,6 @@
                     <p class="text-[11px] text-brand-primary/80 mt-1">Dica: Você pode hospedar as fotos no ImgBB, GitHub ou usar links diretos de imagens.</p>
                 </div>
 
-                <!-- Botão de Envio -->
                 <button type="submit" id="submitBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo
                 </button>
@@ -171,7 +169,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CONFIGURAÇÃO DO SEU FIREBASE (Mesma chave usada no catalogo.html)
+        // Mantenha aqui as suas chaves reais do Firebase
         const firebaseConfig = {
   apiKey: "AIzaSyCOOrAOd6G06-FYYRa2rYgvnnBldm0cK8Y",
   authDomain: "catalogobemsingular.firebaseapp.com",
@@ -184,8 +182,21 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // SENHA DO PAINEL ADMIN (Defina sua senha aqui)
-        const ADMIN_PASSWORD = "cadastrarproduto2224";
+        const ADMIN_PASSWORD = "cadastrar2224"; // Sua senha aqui
+
+        // Função para alternar visibilidade da senha (olhinho)
+        window.togglePassword = function() {
+            const passwordInput = document.getElementById('adminPassword');
+            const eyeIcon = document.getElementById('eyeIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                eyeIcon.className = 'fa-solid fa-eye-slash';
+            } else {
+                passwordInput.type = 'password';
+                eyeIcon.className = 'fa-solid fa-eye';
+            }
+        }
 
         window.handleLogin = function(event) {
             event.preventDefault();
@@ -205,7 +216,6 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cadastrando...`;
 
-            // Tratar as imagens (separar por vírgula em formato de lista)
             const rawImages = document.getElementById('prodImages').value;
             const imagesArray = rawImages.split(',').map(img => img.trim()).filter(img => img.length > 0);
 
