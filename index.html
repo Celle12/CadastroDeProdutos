@@ -46,15 +46,13 @@
             <p class="text-brand-primary text-sm mb-6">Digite sua senha de acesso para gerenciar o catálogo.</p>
             
             <form onsubmit="handleLogin(event)" class="space-y-4">
-                <!-- Campo de senha com o botão do olhinho -->
                 <div class="relative">
                     <input type="password" id="adminPassword" placeholder="Senha de acesso" required
-                        class="w-full px-4 py-3 bg-brand-bg/65 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark placeholder-brand-primary/50 text-center tracking-widest pr-12">
+                        class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark placeholder-brand-primary/50 text-center tracking-widest pr-12">
                     <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary hover:text-brand-dark transition">
                         <i id="eyeIcon" class="fa-solid fa-eye"></i>
                     </button>
                 </div>
-
                 <button type="submit" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-3 rounded-xl font-medium transition shadow-sm">
                     Entrar no Painel
                 </button>
@@ -75,23 +73,30 @@
                     <p class="text-[10px] uppercase tracking-widest text-brand-primary font-medium">B&M Singular</p>
                 </div>
             </div>
-            <a href="index.html" target="_blank" class="text-xs bg-brand-bg border border-brand-accent/50 text-brand-dark px-4 py-2 rounded-xl hover:bg-brand-accent/30 transition flex items-center gap-2">
+            <a href="https://catalogobemsingular.github.io/catalogo/" target="_blank" class="text-xs bg-brand-bg border border-brand-accent/50 text-brand-dark px-4 py-2 rounded-xl hover:bg-brand-accent/30 transition flex items-center gap-2">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Catálogo
             </a>
         </div>
     </header>
 
-    <!-- CONTEÚDO PRINCIPAL (FORMULÁRIO DE CADASTRO) -->
-    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full">
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
         
+        <!-- FORMULÁRIO DE CADASTRO / EDIÇÃO -->
         <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div class="mb-6 pb-4 border-b border-brand-accent/20">
-                <h2 class="font-serif text-2xl font-bold text-brand-dark">Cadastrar Novo Produto</h2>
-                <p class="text-brand-primary text-sm">Preencha as informações abaixo para adicionar a peça ao catálogo online.</p>
+            <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
+                <div>
+                    <h2 id="formTitle" class="font-serif text-2xl font-bold text-brand-dark">Cadastrar Novo Produto</h2>
+                    <p id="formSubtitle" class="text-brand-primary text-sm">Preencha as informações abaixo para adicionar a peça ao catálogo.</p>
+                </div>
+                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
+                    Cancelar Edição
+                </button>
             </div>
 
             <form id="productForm" onsubmit="saveProduct(event)" class="space-y-6">
-                
+                <input type="hidden" id="editingId" value="">
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome da Peça</label>
@@ -104,7 +109,6 @@
                         <select id="prodCategory" required
                             class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
                             <option value="decoracao">Decoração</option>
-                            <option value="sensorial">Sensorial</option>
                             <option value="utilitarios">Utilitários</option>
                             <option value="personalizados">Personalizados</option>
                         </select>
@@ -149,13 +153,27 @@
                     <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Links das Imagens (URLs separadas por vírgula)</label>
                     <textarea id="prodImages" rows="2" required placeholder="https://exemplo.com/foto1.jpg, https://exemplo.com/foto2.jpg"
                         class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark"></textarea>
-                    <p class="text-[11px] text-brand-primary/80 mt-1">Dica: Você pode hospedar as fotos no ImgBB, GitHub ou usar links diretos de imagens.</p>
                 </div>
 
                 <button type="submit" id="submitBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
                     <i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo
                 </button>
             </form>
+        </div>
+
+        <!-- LISTAGEM DE PRODUTOS CADASTRADOS -->
+        <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div class="mb-6 pb-4 border-b border-brand-accent/20">
+                <h2 class="font-serif text-2xl font-bold text-brand-dark">Produtos Cadastrados</h2>
+                <p class="text-brand-primary text-sm">Gerencie, edite ou exclua os produtos ativos no catálogo.</p>
+            </div>
+
+            <div id="adminProductList" class="space-y-4">
+                <!-- Os produtos cadastrados aparecerão aqui dinamicamente -->
+            </div>
+            <div id="adminLoading" class="text-center py-8 text-brand-primary text-sm">
+                Carregando produtos...
+            </div>
         </div>
     </main>
 
@@ -168,28 +186,27 @@
     <!-- FIREBASE E SCRIPT DO ADMIN -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Mantenha aqui as suas chaves reais do Firebase
         const firebaseConfig = {
-  apiKey: "AIzaSyCOOrAOd6G06-FYYRa2rYgvnnBldm0cK8Y",
-  authDomain: "catalogobemsingular.firebaseapp.com",
-  projectId: "catalogobemsingular",
-  storageBucket: "catalogobemsingular.firebasestorage.app",
-  messagingSenderId: "530499479409",
-  appId: "1:530499479409:web:93bda5df7d87a3eac4b8d0"
-};
+            apiKey: "AIzaSyCOOrAOd6G06-FYYRa2rYgvnnBldm0cK8Y",
+            authDomain: "catalogobemsingular.firebaseapp.com",
+            projectId: "catalogobemsingular",
+            storageBucket: "catalogobemsingular.firebasestorage.app",
+            messagingSenderId: "530499479409",
+            appId: "1:530499479409:web:93bda5df7d87a3eac4b8d0"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const ADMIN_PASSWORD = "cadastrar2224"; // Sua senha aqui
+        const ADMIN_PASSWORD = "produto2224"; // Altere sua senha aqui se quiser
 
-        // Função para alternar visibilidade da senha (olhinho)
+        let allProducts = [];
+
         window.togglePassword = function() {
             const passwordInput = document.getElementById('adminPassword');
             const eyeIcon = document.getElementById('eyeIcon');
-            
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
                 eyeIcon.className = 'fa-solid fa-eye-slash';
@@ -206,16 +223,70 @@
 
             if (pass === ADMIN_PASSWORD) {
                 document.getElementById('loginScreen').classList.add('hidden');
+                loadAdminProducts();
             } else {
                 errorText.classList.remove('hidden');
+            }
+        }
+
+        async function loadAdminProducts() {
+            const listContainer = document.getElementById('adminProductList');
+            const loadingText = document.getElementById('adminLoading');
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "products"));
+                allProducts = [];
+                querySnapshot.forEach((docSnap) => {
+                    allProducts.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                loadingText.classList.add('hidden');
+                listContainer.innerHTML = '';
+
+                if (allProducts.length === 0) {
+                    listContainer.innerHTML = `<p class="text-center text-brand-primary text-sm py-6">Nenhum produto cadastrado ainda.</p>`;
+                    return;
+                }
+
+                allProducts.forEach(p => {
+                    const item = document.createElement('div');
+                    item.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-brand-bg rounded-xl border border-brand-accent/30";
+                    
+                    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/100';
+
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <img src="${imgUrl}" class="w-14 h-14 object-cover rounded-lg border border-brand-accent/40 flex-shrink-0">
+                            <div>
+                                <h3 class="font-serif font-bold text-brand-dark text-base">${p.name}</h3>
+                                <p class="text-xs text-brand-primary uppercase">${p.category} • Pix: R$ ${Number(p.pricePix).toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <button onclick="prepareEdit('${p.id}')" class="px-3 py-2 bg-brand-card border border-brand-accent/50 text-brand-dark text-xs rounded-lg hover:bg-brand-accent/20 transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen"></i> Editar
+                            </button>
+                            <button onclick="deleteProduct('${p.id}')" class="px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-xs rounded-lg hover:bg-red-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    `;
+                    listContainer.appendChild(item);
+                });
+
+            } catch (error) {
+                console.error("Erro ao carregar lista:", error);
+                loadingText.textContent = "Erro ao carregar produtos.";
             }
         }
 
         window.saveProduct = async function(event) {
             event.preventDefault();
             const btn = document.getElementById('submitBtn');
+            const editingId = document.getElementById('editingId').value;
+            
             btn.disabled = true;
-            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Cadastrando...`;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Salvando...`;
 
             const rawImages = document.getElementById('prodImages').value;
             const imagesArray = rawImages.split(',').map(img => img.trim()).filter(img => img.length > 0);
@@ -228,20 +299,72 @@
                 desc: document.getElementById('prodDesc').value,
                 size: document.getElementById('prodSize').value,
                 care: document.getElementById('prodCare').value,
-                images: imagesArray,
-                createdAt: new Date()
+                images: imagesArray
             };
 
             try {
-                await addDoc(collection(db, "products"), productData);
-                alert("Produto cadastrado com sucesso! Já está visível no seu catálogo.");
-                document.getElementById('productForm').reset();
+                if (editingId) {
+                    // Atualizar produto existente
+                    await updateDoc(doc(db, "products", editingId), productData);
+                    alert("Produto atualizado com sucesso!");
+                } else {
+                    // Criar novo produto
+                    productData.createdAt = new Date();
+                    await addDoc(collection(db, "products"), productData);
+                    alert("Produto cadastrado com sucesso!");
+                }
+                resetForm();
+                loadAdminProducts();
             } catch (error) {
-                console.error("Erro ao salvar produto: ", error);
-                alert("Erro ao cadastrar produto. Verifique o console ou a configuração do Firebase.");
+                console.error("Erro ao salvar:", error);
+                alert("Erro ao salvar o produto.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo`;
+            }
+        }
+
+        window.prepareEdit = function(id) {
+            const p = allProducts.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('editingId').value = p.id;
+            document.getElementById('prodName').value = p.name || '';
+            document.getElementById('prodCategory').value = p.category || 'decoracao';
+            document.getElementById('prodPricePix').value = p.pricePix || '';
+            document.getElementById('prodPriceCard').value = p.priceCard || '';
+            document.getElementById('prodDesc').value = p.desc || '';
+            document.getElementById('prodSize').value = p.size || '';
+            document.getElementById('prodCare').value = p.care || '';
+            document.getElementById('prodImages').value = p.images ? p.images.join(', ') : '';
+
+            document.getElementById('formTitle').textContent = "Editar Produto";
+            document.getElementById('formSubtitle').textContent = `Editando: ${p.name}`;
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações`;
+            document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.resetForm = function() {
+            document.getElementById('productForm').reset();
+            document.getElementById('editingId').value = '';
+            document.getElementById('formTitle').textContent = "Cadastrar Novo Produto";
+            document.getElementById('formSubtitle').textContent = "Preencha as informações abaixo para adicionar a peça ao catálogo.";
+            document.getElementById('submitBtn').innerHTML = `<i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo`;
+            document.getElementById('cancelEditBtn').classList.add('hidden');
+        }
+
+        window.deleteProduct = async function(id) {
+            if (!confirm("Tem certeza que deseja excluir este produto do catálogo?")) return;
+
+            try {
+                await deleteDoc(doc(db, "products", id));
+                alert("Produto excluído com sucesso!");
+                loadAdminProducts();
+            } catch (error) {
+                console.error("Erro ao excluir:", error);
+                alert("Erro ao excluir o produto.");
             }
         }
     </script>
