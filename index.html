@@ -172,7 +172,7 @@
                 <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
                     <div>
                         <h2 id="queueFormTitle" class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila</h2>
-                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, o número de placas, unidades por placa e os tempos.</p>
+                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, quantidade total, placas e os tempos.</p>
                     </div>
                     <button type="button" id="cancelQueueEditBtn" onclick="resetQueueForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
                         Cancelar Edição
@@ -202,7 +202,13 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Quantidade Total Pedida</label>
+                            <input type="number" min="1" id="queueQty" required placeholder="Ex: 10" value="1"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Qtd. de Placas de Impressão</label>
                             <input type="number" min="1" id="queuePlates" onchange="generatePlateTimeInputs()" required placeholder="2" value="1"
@@ -490,19 +496,16 @@
             let totalHours = 0;
             const lower = timeStr.toLowerCase();
 
-            // Tenta extrair horas (ex: "3h", "3.5h", "3 horas")
             const hourMatch = lower.match(/(\d+[\.,]?\d*)\s*(?:h|hora|horas)/);
             if (hourMatch) {
                 totalHours += parseFloat(hourMatch[1].replace(',', '.'));
             }
 
-            // Tenta extrair minutos (ex: "30min", "45 min")
             const minMatch = lower.match(/(\d+)\s*(?:m|min|minuto|minutos)/);
             if (minMatch) {
                 totalHours += parseInt(minMatch[1]) / 60;
             }
 
-            // Se não encontrou 'h' nem 'min', mas é apenas um número, assume que são horas
             if (!hourMatch && !minMatch) {
                 const num = parseFloat(lower.replace(',', '.'));
                 if (!isNaN(num)) totalHours += num;
@@ -524,7 +527,6 @@
                     allQueueItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                // Ordenar por prioridade
                 allQueueItems.sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
 
                 if (queueLoading) queueLoading.classList.add('hidden');
@@ -559,7 +561,6 @@
                             const isChecked = plate.done ? 'checked' : '';
                             const lineThrough = plate.done ? 'line-through opacity-60' : '';
                             
-                            // Somar ao total de horas da fila apenas se a placa ainda não foi concluída (ou somar tudo se preferir o total geral. Vamos somar o total geral de horas da fila)
                             totalQueueHours += parseHoursToNumber(plate.time);
 
                             platesHtml += `
@@ -581,7 +582,7 @@
                                 <h3 class="font-serif font-bold text-brand-dark text-base">${item.product}</h3>
                                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${badgeColor}">${item.payment}</span>
                             </div>
-                            <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong></p>
+                            <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong> • Qtd Total: <strong>${item.qty} un</strong></p>
                             ${platesHtml}
                         </div>
                         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto flex-shrink-0">
@@ -641,6 +642,7 @@
                 priority: parseInt(document.getElementById('queuePriority').value) || 1,
                 client: document.getElementById('queueClient').value,
                 product: document.getElementById('queueProduct').value,
+                qty: parseInt(document.getElementById('queueQty').value),
                 plates: platesCount,
                 platesDetails: platesDetails,
                 totalPrice: parseFloat(document.getElementById('queueTotalPrice').value),
@@ -675,6 +677,7 @@
             document.getElementById('queuePriority').value = item.priority || 1;
             document.getElementById('queueClient').value = item.client || '';
             document.getElementById('queueProduct').value = item.product || '';
+            document.getElementById('queueQty').value = item.qty || 1;
             document.getElementById('queuePlates').value = item.plates || 1;
             document.getElementById('queueTotalPrice').value = item.totalPrice || '';
             document.getElementById('queuePayment').value = item.payment || '50% de Entrada';
@@ -692,12 +695,13 @@
         window.resetQueueForm = function() {
             document.getElementById('queueForm').reset();
             document.getElementById('editingQueueId').value = '';
+            document.getElementById('queueQty').value = "1";
             document.getElementById('queuePlates').value = "1";
             document.getElementById('queuePriority').value = "1";
             generatePlateTimeInputs();
 
             document.getElementById('queueFormTitle').innerHTML = `<i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila`;
-            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, o número de placas, unidades por placa e os tempos.";
+            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, quantidade total, placas e os tempos.";
             document.getElementById('submitQueueBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar à Fila de Impressão`;
             document.getElementById('cancelQueueEditBtn').classList.add('hidden');
         }
