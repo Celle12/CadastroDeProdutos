@@ -172,7 +172,7 @@
                 <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
                     <div>
                         <h2 id="queueFormTitle" class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila</h2>
-                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, o número de placas e os tempos de cada uma.</p>
+                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, o número de placas, unidades por placa e os tempos.</p>
                     </div>
                     <button type="button" id="cancelQueueEditBtn" onclick="resetQueueForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
                         Cancelar Edição
@@ -197,18 +197,12 @@
 
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome do Produto / Peça</label>
-                            <input type="text" id="queueProduct" required placeholder="Ex: Vaso Geométrico"
+                            <input type="text" id="queueProduct" required placeholder="Ex: Chaveiro Personalizado"
                                 class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Quantidade de Peças</label>
-                            <input type="number" min="1" id="queueQty" required placeholder="1" value="1"
-                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                        </div>
-
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Qtd. de Placas de Impressão</label>
                             <input type="number" min="1" id="queuePlates" onchange="generatePlateTimeInputs()" required placeholder="2" value="1"
@@ -226,10 +220,10 @@
                         </div>
                     </div>
 
-                    <!-- CAIXAS DINÂMICAS PARA O TEMPO DE CADA PLACA -->
+                    <!-- CAIXAS DINÂMICAS PARA UNIDADES E TEMPO DE CADA PLACA -->
                     <div id="platesTimeContainer" class="bg-brand-bg p-4 rounded-xl border border-brand-accent/30 space-y-3">
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold">Tempo de cada Placa Individual:</label>
-                        <div id="plateInputsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold">Configuração de cada Placa (Unidades e Tempo):</label>
+                        <div id="plateInputsGrid" class="space-y-3">
                             <!-- Gerado via JavaScript -->
                         </div>
                     </div>
@@ -248,13 +242,18 @@
 
             <!-- Lista de Pedidos na Fila -->
             <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
-                <div class="mb-6 pb-4 border-b border-brand-accent/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div class="mb-6 pb-4 border-b border-brand-accent/25 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
-                        <h2 class="font-serif text-2xl font-bold text-brand-dark">Pedidos em Fila Ativa (Ordenados por Prioridade)</h2>
-                        <p class="text-brand-primary text-sm">Visualize a ordem de impressão e marque as placas concluídas.</p>
+                        <h2 class="font-serif text-2xl font-bold text-brand-dark">Pedidos em Fila Ativa</h2>
+                        <p class="text-brand-primary text-sm">Visualize a prioridade, as placas, marque o progresso e confira o tempo total.</p>
                     </div>
-                    <div id="queueSummary" class="text-xs font-semibold bg-brand-bg px-4 py-2 rounded-xl border border-brand-accent/40 text-brand-dark">
-                        Total Fila: R$ 0,00
+                    <div class="flex flex-wrap gap-2">
+                        <div id="totalHoursSummary" class="text-xs font-semibold bg-brand-bg px-4 py-2 rounded-xl border border-brand-accent/40 text-brand-dark">
+                            Tempo Total Fila: 0h
+                        </div>
+                        <div id="queueSummary" class="text-xs font-semibold bg-brand-bg px-4 py-2 rounded-xl border border-brand-accent/40 text-brand-dark">
+                            Total Fila: R$ 0,00
+                        </div>
                     </div>
                 </div>
 
@@ -304,16 +303,28 @@
 
             for (let i = 1; i <= platesCount; i++) {
                 let defaultTime = '';
+                let defaultUnits = 1;
                 if (existingDetails && existingDetails[i - 1]) {
                     defaultTime = existingDetails[i - 1].time || '';
+                    defaultUnits = existingDetails[i - 1].units || 1;
                 }
 
                 const div = document.createElement('div');
-                div.className = "flex items-center gap-2";
+                div.className = "flex flex-col sm:flex-row items-center gap-2 bg-brand-card p-3 rounded-xl border border-brand-accent/30";
                 div.innerHTML = `
-                    <span class="text-xs font-semibold text-brand-primary w-20">Placa ${i}:</span>
-                    <input type="text" id="plateTime_${i}" value="${defaultTime}" required placeholder="Ex: 3h 30min"
-                        class="w-full px-3 py-2 bg-brand-card border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                    <span class="text-xs font-bold text-brand-dark w-20">Placa ${i}:</span>
+                    <div class="flex items-center gap-2 w-full">
+                        <div class="flex-grow">
+                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Tempo da Placa</label>
+                            <input type="text" id="plateTime_${i}" value="${defaultTime}" required placeholder="Ex: 3h 30min"
+                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                        <div class="w-32 flex-shrink-0">
+                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Qtd. Unidades</label>
+                            <input type="number" min="1" id="plateUnits_${i}" value="${defaultUnits}" required placeholder="Ex: 4"
+                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
                 `;
                 container.appendChild(div);
             }
@@ -474,10 +485,37 @@
 
 
         // ================= FUNÇÕES DA FILA DE IMPRESSÃO =================
+        function parseHoursToNumber(timeStr) {
+            if (!timeStr) return 0;
+            let totalHours = 0;
+            const lower = timeStr.toLowerCase();
+
+            // Tenta extrair horas (ex: "3h", "3.5h", "3 horas")
+            const hourMatch = lower.match(/(\d+[\.,]?\d*)\s*(?:h|hora|horas)/);
+            if (hourMatch) {
+                totalHours += parseFloat(hourMatch[1].replace(',', '.'));
+            }
+
+            // Tenta extrair minutos (ex: "30min", "45 min")
+            const minMatch = lower.match(/(\d+)\s*(?:m|min|minuto|minutos)/);
+            if (minMatch) {
+                totalHours += parseInt(minMatch[1]) / 60;
+            }
+
+            // Se não encontrou 'h' nem 'min', mas é apenas um número, assume que são horas
+            if (!hourMatch && !minMatch) {
+                const num = parseFloat(lower.replace(',', '.'));
+                if (!isNaN(num)) totalHours += num;
+            }
+
+            return totalHours;
+        }
+
         async function loadQueueItems() {
             const queueList = document.getElementById('queueList');
             const queueLoading = document.getElementById('queueLoading');
             const queueSummary = document.getElementById('queueSummary');
+            const totalHoursSummary = document.getElementById('totalHoursSummary');
 
             try {
                 const querySnapshot = await getDocs(collection(db, "printQueue"));
@@ -486,17 +524,19 @@
                     allQueueItems.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                // Ordenar os itens pelo número de prioridade (menor número aparece primeiro)
+                // Ordenar por prioridade
                 allQueueItems.sort((a, b) => (Number(a.priority) || 99) - (Number(b.priority) || 99));
 
                 if (queueLoading) queueLoading.classList.add('hidden');
                 queueList.innerHTML = '';
 
                 let totalFinancial = 0;
+                let totalQueueHours = 0;
 
                 if (allQueueItems.length === 0) {
                     queueList.innerHTML = `<p class="text-center text-brand-primary text-sm py-6">Nenhum pedido na fila de impressão no momento.</p>`;
                     queueSummary.textContent = `Total Fila: R$ 0,00`;
+                    totalHoursSummary.textContent = `Tempo Total Fila: 0h`;
                     return;
                 }
 
@@ -518,10 +558,14 @@
                         item.platesDetails.forEach((plate, index) => {
                             const isChecked = plate.done ? 'checked' : '';
                             const lineThrough = plate.done ? 'line-through opacity-60' : '';
+                            
+                            // Somar ao total de horas da fila apenas se a placa ainda não foi concluída (ou somar tudo se preferir o total geral. Vamos somar o total geral de horas da fila)
+                            totalQueueHours += parseHoursToNumber(plate.time);
+
                             platesHtml += `
                                 <label class="flex items-center gap-1.5 bg-brand-card px-2.5 py-1 rounded-lg border border-brand-accent/40 text-xs cursor-pointer">
                                     <input type="checkbox" ${isChecked} onchange="togglePlateDone('${item.id}', ${index})" class="rounded text-brand-primary focus:ring-brand-primary/50">
-                                    <span class="${lineThrough}">P${index + 1} (${plate.time})</span>
+                                    <span class="${lineThrough}">P${index + 1}: ${plate.time} (${plate.units} un)</span>
                                 </label>
                             `;
                         });
@@ -537,7 +581,7 @@
                                 <h3 class="font-serif font-bold text-brand-dark text-base">${item.product}</h3>
                                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${badgeColor}">${item.payment}</span>
                             </div>
-                            <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong> • Qtd: ${item.qty}</p>
+                            <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong></p>
                             ${platesHtml}
                         </div>
                         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto flex-shrink-0">
@@ -559,6 +603,7 @@
                 });
 
                 queueSummary.textContent = `Total Fila: R$ ${totalFinancial.toFixed(2)}`;
+                totalHoursSummary.textContent = `Tempo Total Fila: ${totalQueueHours.toFixed(1).replace('.0', '')}h`;
 
             } catch (error) {
                 console.error("Erro ao carregar fila:", error);
@@ -579,6 +624,7 @@
 
             for (let i = 1; i <= platesCount; i++) {
                 const timeVal = document.getElementById(`plateTime_${i}`) ? document.getElementById(`plateTime_${i}`).value : '3h';
+                const unitsVal = document.getElementById(`plateUnits_${i}`) ? parseInt(document.getElementById(`plateUnits_${i}`).value) || 1 : 1;
                 
                 let isDone = false;
                 if (editingId) {
@@ -588,14 +634,13 @@
                     }
                 }
 
-                platesDetails.push({ time: timeVal, done: isDone });
+                platesDetails.push({ time: timeVal, units: unitsVal, done: isDone });
             }
 
             const queueData = {
                 priority: parseInt(document.getElementById('queuePriority').value) || 1,
                 client: document.getElementById('queueClient').value,
                 product: document.getElementById('queueProduct').value,
-                qty: parseInt(document.getElementById('queueQty').value),
                 plates: platesCount,
                 platesDetails: platesDetails,
                 totalPrice: parseFloat(document.getElementById('queueTotalPrice').value),
@@ -630,7 +675,6 @@
             document.getElementById('queuePriority').value = item.priority || 1;
             document.getElementById('queueClient').value = item.client || '';
             document.getElementById('queueProduct').value = item.product || '';
-            document.getElementById('queueQty').value = item.qty || 1;
             document.getElementById('queuePlates').value = item.plates || 1;
             document.getElementById('queueTotalPrice').value = item.totalPrice || '';
             document.getElementById('queuePayment').value = item.payment || '50% de Entrada';
@@ -648,13 +692,12 @@
         window.resetQueueForm = function() {
             document.getElementById('queueForm').reset();
             document.getElementById('editingQueueId').value = '';
-            document.getElementById('queueQty').value = "1";
             document.getElementById('queuePlates').value = "1";
             document.getElementById('queuePriority').value = "1";
             generatePlateTimeInputs();
 
             document.getElementById('queueFormTitle').innerHTML = `<i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila`;
-            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, o número de placas e os tempos de cada uma.";
+            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, o número de placas, unidades por placa e os tempos.";
             document.getElementById('submitQueueBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar à Fila de Impressão`;
             document.getElementById('cancelQueueEditBtn').classList.add('hidden');
         }
