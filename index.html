@@ -36,34 +36,9 @@
 </head>
 <body class="bg-brand-bg text-brand-dark font-sans antialiased min-h-screen flex flex-col justify-between">
 
-    <!-- TELA DE LOGIN -->
-    <div id="loginScreen" class="fixed inset-0 bg-brand-bg z-50 flex items-center justify-center p-4">
-        <div class="bg-brand-card border border-brand-accent/40 rounded-2xl max-w-md w-full p-8 shadow-xl text-center">
-            <div class="w-14 h-14 rounded-full bg-brand-accent/40 border border-brand-primary/30 flex items-center justify-center mx-auto mb-4">
-                <span class="font-serif font-bold text-brand-dark text-xl">B&M</span>
-            </div>
-            <h2 class="font-serif text-2xl font-bold text-brand-dark mb-2">Painel Restrito</h2>
-            <p class="text-brand-primary text-sm mb-6">Digite sua senha de acesso para gerenciar o catálogo.</p>
-            
-            <form onsubmit="handleLogin(event)" class="space-y-4">
-                <div class="relative">
-                    <input type="password" id="adminPassword" placeholder="Senha de acesso" required
-                        class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark placeholder-brand-primary/50 text-center tracking-widest pr-12">
-                    <button type="button" onclick="togglePassword()" class="absolute inset-y-0 right-0 pr-4 flex items-center text-brand-primary hover:text-brand-dark transition">
-                        <i id="eyeIcon" class="fa-solid fa-eye"></i>
-                    </button>
-                </div>
-                <button type="submit" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-3 rounded-xl font-medium transition shadow-sm">
-                    Entrar no Painel
-                </button>
-            </form>
-            <p id="loginError" class="text-red-500 text-xs mt-3 hidden">Senha incorreta. Tente novamente.</p>
-        </div>
-    </div>
-
     <!-- CABEÇALHO DO PAINEL -->
     <header class="bg-brand-card border-b border-brand-accent/30 sticky top-0 z-40 shadow-sm">
-        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-brand-accent/40 border border-brand-primary/30 flex items-center justify-center overflow-hidden">
                     <span class="font-serif font-bold text-brand-dark text-sm">B&M</span>
@@ -73,6 +48,17 @@
                     <p class="text-[10px] uppercase tracking-widest text-brand-primary font-medium">B&M Singular</p>
                 </div>
             </div>
+
+            <!-- Abas de Navegação -->
+            <div class="flex items-center gap-2 bg-brand-bg p-1.5 rounded-xl border border-brand-accent/40">
+                <button onclick="switchTab('products')" id="tabProductsBtn" class="px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm">
+                    <i class="fa-solid fa-boxes-stacked mr-1"></i> Catálogo
+                </button>
+                <button onclick="switchTab('queue')" id="tabQueueBtn" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark">
+                    <i class="fa-solid fa-print mr-1"></i> Fila de Impressão
+                </button>
+            </div>
+
             <a href="https://celle12.github.io/Cat-logoBemSingular3D/" target="_blank" class="text-xs bg-brand-bg border border-brand-accent/50 text-brand-dark px-4 py-2 rounded-xl hover:bg-brand-accent/30 transition flex items-center gap-2">
                 <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Catálogo
             </a>
@@ -80,107 +66,190 @@
     </header>
 
     <!-- CONTEÚDO PRINCIPAL -->
-    <main class="max-w-4xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
+    <main class="max-w-5xl mx-auto px-4 py-8 flex-grow w-full space-y-8">
         
-        <!-- FORMULÁRIO DE CADASTRO / EDIÇÃO -->
-        <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
-                <div>
-                    <h2 id="formTitle" class="font-serif text-2xl font-bold text-brand-dark">Cadastrar Novo Produto</h2>
-                    <p id="formSubtitle" class="text-brand-primary text-sm">Preencha as informações abaixo para adicionar a peça ao catálogo.</p>
+        <!-- SEÇÃO 1: CATÁLOGO DE PRODUTOS -->
+        <div id="sectionProducts" class="space-y-8">
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
+                    <div>
+                        <h2 id="formTitle" class="font-serif text-2xl font-bold text-brand-dark">Cadastrar Novo Produto</h2>
+                        <p id="formSubtitle" class="text-brand-primary text-sm">Preencha as informações abaixo para adicionar a peça ao catálogo.</p>
+                    </div>
+                    <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
+                        Cancelar Edição
+                    </button>
                 </div>
-                <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
-                    Cancelar Edição
-                </button>
+
+                <form id="productForm" onsubmit="saveProduct(event)" class="space-y-6">
+                    <input type="hidden" id="editingId" value="">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome da Peça</label>
+                            <input type="text" id="prodName" required placeholder="Ex: Vaso Geométrico Minimalista"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Categoria</label>
+                            <select id="prodCategory" required
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                                <option value="decoracao">Decoração</option>
+                                <option value="sensorial">Sensorial</option>
+                                <option value="foto/lithophane">Foto/Lithophane</option>
+                                <option value="chaveiro">Chaveiro</option>
+                                <option value="trofeu">Troféu</option>
+                                <option value="medalha">Medalha</option>
+                                <option value="miniatura">Miniatura</option>
+                                <option value="utilitarios">Utilitários</option>
+                                <option value="personalizados">Personalizados</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Pix (R$)</label>
+                            <input type="number" step="0.01" id="prodPricePix" required placeholder="45.00"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Cartão (R$)</label>
+                            <input type="number" step="0.01" id="prodPriceCard" required placeholder="49.90"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Descrição da Peça</label>
+                        <textarea id="prodDesc" rows="3" required placeholder="Descreva os detalhes da peça..."
+                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Tamanho e Dimensões</label>
+                            <input type="text" id="prodSize" placeholder="Ex: Altura: 14cm | Diâmetro: 12cm"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Orientações e Cuidados</label>
+                            <input type="text" id="prodCare" placeholder="Ex: Limpar apenas com pano levemente umedecido"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Links das Imagens (URLs separadas por vírgula)</label>
+                        <textarea id="prodImages" rows="2" required placeholder="https://exemplo.com/foto1.jpg, https://exemplo.com/foto2.jpg"
+                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark"></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo
+                    </button>
+                </form>
             </div>
 
-            <form id="productForm" onsubmit="saveProduct(event)" class="space-y-6">
-                <input type="hidden" id="editingId" value="">
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome da Peça</label>
-                        <input type="text" id="prodName" required placeholder="Ex: Vaso Geométrico Minimalista"
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Categoria</label>
-                        <select id="prodCategory" required
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                            <option value="decoracao">Decoração</option>
-                            <option value="sensorial">Sensorial</option>
-                            <option value="foto/lithophane">Foto/Lithophane</option>
-                            <option value="chaveiro">Chaveiro</option>
-                            <option value="trofeu">Troféu</option>
-                            <option value="medalha">Medalha</option>
-                            <option value="miniatura">Miniatura</option>
-                            <option value="utilitarios">Utilitários</option>
-                            <option value="personalizados">Personalizados</option>
-                        </select>
-                    </div>
+            <!-- LISTAGEM DE PRODUTOS CADASTRADOS -->
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20">
+                    <h2 class="font-serif text-2xl font-bold text-brand-dark">Produtos Cadastrados</h2>
+                    <p class="text-brand-primary text-sm">Gerencie, edite ou exclua os produtos ativos no catálogo.</p>
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Pix (R$)</label>
-                        <input type="number" step="0.01" id="prodPricePix" required placeholder="45.00"
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço no Cartão (R$)</label>
-                        <input type="number" step="0.01" id="prodPriceCard" required placeholder="49.90"
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Descrição da Peça</label>
-                    <textarea id="prodDesc" rows="3" required placeholder="Descreva os detalhes da peça..."
-                        class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark"></textarea>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Tamanho e Dimensões</label>
-                        <input type="text" id="prodSize" placeholder="Ex: Altura: 14cm | Diâmetro: 12cm"
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                    </div>
-
-                    <div>
-                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Orientações e Cuidados</label>
-                        <input type="text" id="prodCare" placeholder="Ex: Limpar apenas com pano levemente umedecido"
-                            class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Links das Imagens (URLs separadas por vírgula)</label>
-                    <textarea id="prodImages" rows="2" required placeholder="https://exemplo.com/foto1.jpg, https://exemplo.com/foto2.jpg"
-                        class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark"></textarea>
-                </div>
-
-                <button type="submit" id="submitBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Cadastrar Produto no Catálogo
-                </button>
-            </form>
-        </div>
-
-        <!-- LISTAGEM DE PRODUTOS CADASTRADOS -->
-        <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div class="mb-6 pb-4 border-b border-brand-accent/20">
-                <h2 class="font-serif text-2xl font-bold text-brand-dark">Produtos Cadastrados</h2>
-                <p class="text-brand-primary text-sm">Gerencie, edite ou exclua os produtos ativos no catálogo.</p>
-            </div>
-
-            <div id="adminProductList" class="space-y-4">
-                <!-- Os produtos cadastrados aparecerão aqui dinamicamente -->
-            </div>
-            <div id="adminLoading" class="text-center py-8 text-brand-primary text-sm">
-                Carregando produtos...
+                <div id="adminProductList" class="space-y-4"></div>
+                <div id="adminLoading" class="text-center py-8 text-brand-primary text-sm">Carregando produtos...</div>
             </div>
         </div>
+
+        <!-- SEÇÃO 2: FILA DE IMPRESSÃO -->
+        <div id="sectionQueue" class="space-y-8 hidden">
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20">
+                    <h2 class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila</h2>
+                    <p class="text-brand-primary text-sm">Adicione os detalhes de impressão, tempo das placas e status financeiro.</p>
+                </div>
+
+                <form id="queueForm" onsubmit="saveQueueItem(event)" class="space-y-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome do Cliente</label>
+                            <input type="text" id="queueClient" required placeholder="Ex: Ana Souza"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome do Produto / Peça</label>
+                            <input type="text" id="queueProduct" required placeholder="Ex: Vaso Geométrico + Suporte"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Quantidade de Peças</label>
+                            <input type="number" min="1" id="queueQty" required placeholder="1" value="1"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Qtd. de Placas de Impressão</label>
+                            <input type="number" min="1" id="queuePlates" required placeholder="2" value="1"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Tempo por Placa</label>
+                            <input type="text" id="queueTimePerPlate" required placeholder="Ex: 3h 45min"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Preço Total do Pedido (R$)</label>
+                            <input type="number" step="0.01" id="queueTotalPrice" required placeholder="90.00"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Status do Pagamento</label>
+                            <select id="queuePayment" required
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                                <option value="50% de Entrada">50% de Entrada (Pix/Cartão)</option>
+                                <option value="Pago Total">Pago Total (100%)</option>
+                                <option value="Pendente">Pendente</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitQueueBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Adicionar à Fila de Impressão
+                    </button>
+                </form>
+            </div>
+
+            <!-- Lista de Pedidos na Fila -->
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                    <div>
+                        <h2 class="font-serif text-2xl font-bold text-brand-dark">Pedidos em Fila Ativa</h2>
+                        <p class="text-brand-primary text-sm">Acompanhe o andamento da produção e os valores.</p>
+                    </div>
+                    <div id="queueSummary" class="text-xs font-semibold bg-brand-bg px-4 py-2 rounded-xl border border-brand-accent/40 text-brand-dark">
+                        Total Fila: R$ 0,00
+                    </div>
+                </div>
+
+                <div id="queueList" class="space-y-4"></div>
+                <div id="queueLoading" class="text-center py-8 text-brand-primary text-sm">Carregando fila de impressão...</div>
+            </div>
+        </div>
+
     </main>
 
     <!-- RODAPÉ -->
@@ -206,35 +275,36 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const ADMIN_PASSWORD = "produto2224"; // Altere sua senha aqui se quiser
-
         let allProducts = [];
+        let allQueueItems = [];
 
-        window.togglePassword = function() {
-            const passwordInput = document.getElementById('adminPassword');
-            const eyeIcon = document.getElementById('eyeIcon');
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                eyeIcon.className = 'fa-solid fa-eye-slash';
+        // Carregar dados automaticamente ao abrir a página (sem senha)
+        window.onload = function() {
+            loadAdminProducts();
+            loadQueueItems();
+        };
+
+        // Alternar entre abas do Painel
+        window.switchTab = function(tab) {
+            const productsSec = document.getElementById('sectionProducts');
+            const queueSec = document.getElementById('sectionQueue');
+            const prodBtn = document.getElementById('tabProductsBtn');
+            const queueBtn = document.getElementById('tabQueueBtn');
+
+            if (tab === 'products') {
+                productsSec.classList.remove('hidden');
+                queueSec.classList.add('hidden');
+                prodBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm";
+                queueBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark";
             } else {
-                passwordInput.type = 'password';
-                eyeIcon.className = 'fa-solid fa-eye';
+                productsSec.classList.add('hidden');
+                queueSec.classList.remove('hidden');
+                queueBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm";
+                prodBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark";
             }
         }
 
-        window.handleLogin = function(event) {
-            event.preventDefault();
-            const pass = document.getElementById('adminPassword').value;
-            const errorText = document.getElementById('loginError');
-
-            if (pass === ADMIN_PASSWORD) {
-                document.getElementById('loginScreen').classList.add('hidden');
-                loadAdminProducts();
-            } else {
-                errorText.classList.remove('hidden');
-            }
-        }
-
+        // ================= FUNÇÕES DE PRODUTOS =================
         async function loadAdminProducts() {
             const listContainer = document.getElementById('adminProductList');
             const loadingText = document.getElementById('adminLoading');
@@ -246,7 +316,7 @@
                     allProducts.push({ id: docSnap.id, ...docSnap.data() });
                 });
 
-                loadingText.classList.add('hidden');
+                if (loadingText) loadingText.classList.add('hidden');
                 listContainer.innerHTML = '';
 
                 if (allProducts.length === 0) {
@@ -282,7 +352,7 @@
 
             } catch (error) {
                 console.error("Erro ao carregar lista:", error);
-                loadingText.textContent = "Erro ao carregar produtos.";
+                if (loadingText) loadingText.textContent = "Erro ao carregar produtos.";
             }
         }
 
@@ -310,11 +380,9 @@
 
             try {
                 if (editingId) {
-                    // Atualizar produto existente
                     await updateDoc(doc(db, "products", editingId), productData);
                     alert("Produto atualizado com sucesso!");
                 } else {
-                    // Criar novo produto
                     productData.createdAt = new Date();
                     await addDoc(collection(db, "products"), productData);
                     alert("Produto cadastrado com sucesso!");
@@ -371,6 +439,116 @@
             } catch (error) {
                 console.error("Erro ao excluir:", error);
                 alert("Erro ao excluir o produto.");
+            }
+        }
+
+
+        // ================= FUNÇÕES DA FILA DE IMPRESSÃO =================
+        async function loadQueueItems() {
+            const queueList = document.getElementById('queueList');
+            const queueLoading = document.getElementById('queueLoading');
+            const queueSummary = document.getElementById('queueSummary');
+
+            try {
+                const querySnapshot = await getDocs(collection(db, "printQueue"));
+                allQueueItems = [];
+                querySnapshot.forEach((docSnap) => {
+                    allQueueItems.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                if (queueLoading) queueLoading.classList.add('hidden');
+                queueList.innerHTML = '';
+
+                let totalFinancial = 0;
+
+                if (allQueueItems.length === 0) {
+                    queueList.innerHTML = `<p class="text-center text-brand-primary text-sm py-6">Nenhum pedido na fila de impressão no momento.</p>`;
+                    queueSummary.textContent = `Total Fila: R$ 0,00`;
+                    return;
+                }
+
+                allQueueItems.forEach(item => {
+                    totalFinancial += Number(item.totalPrice || 0);
+
+                    const card = document.createElement('div');
+                    card.className = "flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-brand-bg rounded-xl border border-brand-accent/30";
+
+                    let badgeColor = "bg-amber-100 text-amber-800 border-amber-300";
+                    if (item.payment === "Pago Total") badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-300";
+                    if (item.payment === "Pendente") badgeColor = "bg-red-100 text-red-800 border-red-300";
+
+                    card.innerHTML = `
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-serif font-bold text-brand-dark text-base">${item.product}</h3>
+                                <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${badgeColor}">${item.payment}</span>
+                            </div>
+                            <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong> • Qtd: ${item.qty}</p>
+                            <p class="text-xs text-brand-dark"><i class="fa-solid fa-print mr-1"></i> Placas: ${item.plates} | Tempo/Placa: ${item.timePerPlate}</p>
+                        </div>
+                        <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase text-brand-primary block">Total</span>
+                                <span class="font-serif font-bold text-brand-dark text-base">R$ ${Number(item.totalPrice).toFixed(2)}</span>
+                            </div>
+                            <button onclick="deleteQueueItem('${item.id}')" class="px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-xs rounded-lg hover:bg-red-100 transition flex items-center gap-1">
+                                <i class="fa-solid fa-trash"></i> Concluir / Excluir
+                            </button>
+                        </div>
+                    `;
+                    queueList.appendChild(card);
+                });
+
+                queueSummary.textContent = `Total Fila: R$ ${totalFinancial.toFixed(2)}`;
+
+            } catch (error) {
+                console.error("Erro ao carregar fila:", error);
+                if (queueLoading) queueLoading.textContent = "Erro ao carregar a fila de impressão.";
+            }
+        }
+
+        window.saveQueueItem = async function(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitQueueBtn');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Lançando na Fila...`;
+
+            const queueData = {
+                client: document.getElementById('queueClient').value,
+                product: document.getElementById('queueProduct').value,
+                qty: parseInt(document.getElementById('queueQty').value),
+                plates: parseInt(document.getElementById('queuePlates').value),
+                timePerPlate: document.getElementById('queueTimePerPlate').value,
+                totalPrice: parseFloat(document.getElementById('queueTotalPrice').value),
+                payment: document.getElementById('queuePayment').value,
+                createdAt: new Date()
+            };
+
+            try {
+                await addDoc(collection(db, "printQueue"), queueData);
+                alert("Pedido adicionado à fila de impressão com sucesso!");
+                document.getElementById('queueForm').reset();
+                document.getElementById('queueQty').value = "1";
+                document.getElementById('queuePlates').value = "1";
+                loadQueueItems();
+            } catch (error) {
+                console.error("Erro ao salvar pedido na fila:", error);
+                alert("Erro ao adicionar pedido à fila.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar à Fila de Impressão`;
+            }
+        }
+
+        window.deleteQueueItem = async function(id) {
+            if (!confirm("Deseja remover este pedido da fila (impresso / concluído)?")) return;
+            try {
+                await deleteDoc(doc(db, "printQueue", id));
+                alert("Pedido removido da fila!");
+                loadQueueItems();
+            } catch (error) {
+                console.error("Erro ao remover item da fila:", error);
+                alert("Erro ao remover item.");
             }
         }
     </script>
