@@ -50,12 +50,15 @@
             </div>
 
             <!-- Abas de Navegação -->
-            <div class="flex items-center gap-2 bg-brand-bg p-1.5 rounded-xl border border-brand-accent/40">
-                <button onclick="switchTab('products')" id="tabProductsBtn" class="px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm">
+            <div class="flex items-center gap-1 bg-brand-bg p-1.5 rounded-xl border border-brand-accent/40 overflow-x-auto">
+                <button onclick="switchTab('products')" id="tabProductsBtn" class="px-3 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm whitespace-nowrap">
                     <i class="fa-solid fa-boxes-stacked mr-1"></i> Catálogo
                 </button>
-                <button onclick="switchTab('queue')" id="tabQueueBtn" class="px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark">
-                    <i class="fa-solid fa-print mr-1"></i> Fila de Impressão
+                <button onclick="switchTab('queue')" id="tabQueueBtn" class="px-3 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark whitespace-nowrap">
+                    <i class="fa-solid fa-print mr-1"></i> Fila
+                </button>
+                <button onclick="switchTab('filaments')" id="tabFilamentsBtn" class="px-3 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark whitespace-nowrap">
+                    <i class="fa-solid fa-palette mr-1"></i> Estoque Filamentos
                 </button>
             </div>
 
@@ -172,7 +175,7 @@
                 <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
                     <div>
                         <h2 id="queueFormTitle" class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila</h2>
-                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, quantidade total, placas e os tempos.</p>
+                        <p id="queueFormSubtitle" class="text-brand-primary text-sm">Defina a prioridade, quantidade, placas, tempos e cores de filamento.</p>
                     </div>
                     <button type="button" id="cancelQueueEditBtn" onclick="resetQueueForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
                         Cancelar Edição
@@ -226,6 +229,14 @@
                         </div>
                     </div>
 
+                    <!-- SELEÇÃO DE CORES CADASTRADAS NO ESTOQUE -->
+                    <div class="bg-brand-bg p-4 rounded-xl border border-brand-accent/30 space-y-3">
+                        <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold">Cores de Filamento do Pedido:</label>
+                        <div id="queueFilamentsSelectContainer" class="flex flex-wrap gap-2">
+                            <!-- Preenchido via JS com checkboxes do estoque -->
+                        </div>
+                    </div>
+
                     <!-- CAIXAS DINÂMICAS PARA UNIDADES E TEMPO DE CADA PLACA -->
                     <div id="platesTimeContainer" class="bg-brand-bg p-4 rounded-xl border border-brand-accent/30 space-y-3">
                         <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold">Configuração de cada Placa (Unidades e Tempo):</label>
@@ -251,7 +262,7 @@
                 <div class="mb-6 pb-4 border-b border-brand-accent/25 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                     <div>
                         <h2 class="font-serif text-2xl font-bold text-brand-dark">Pedidos em Fila Ativa</h2>
-                        <p class="text-brand-primary text-sm">Visualize a prioridade, as placas, marque o progresso e confira o tempo total.</p>
+                        <p class="text-brand-primary text-sm">Visualize a prioridade, disponibilidade de estoque, placas e tempo total.</p>
                     </div>
                     <div class="flex flex-wrap gap-2">
                         <div id="totalHoursSummary" class="text-xs font-semibold bg-brand-bg px-4 py-2 rounded-xl border border-brand-accent/40 text-brand-dark">
@@ -265,6 +276,63 @@
 
                 <div id="queueList" class="space-y-4"></div>
                 <div id="queueLoading" class="text-center py-8 text-brand-primary text-sm">Carregando fila de impressão...</div>
+            </div>
+        </div>
+
+        <!-- SEÇÃO 3: ESTOQUE DE FILAMENTOS (NOVA ABA) -->
+        <div id="sectionFilaments" class="space-y-8 hidden">
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
+                    <div>
+                        <h2 id="filamentFormTitle" class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-palette text-brand-primary mr-2"></i> Cadastrar Cor de Filamento</h2>
+                        <p class="text-brand-primary text-sm">Adicione as cores disponíveis e a quantidade de rolos em estoque.</p>
+                    </div>
+                    <button type="button" id="cancelFilamentEditBtn" onclick="resetFilamentForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
+                        Cancelar Edição
+                    </button>
+                </div>
+
+                <form id="filamentForm" onsubmit="saveFilament(event)" class="space-y-6">
+                    <input type="hidden" id="editingFilamentId" value="">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome da Cor (Ex: Dourado Silk)</label>
+                            <input type="text" id="filName" required placeholder="Ex: Azul Céu"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Cor Visual (Representação)</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" id="filColorCode" value="#D4AF37"
+                                    class="w-14 h-11 p-1 bg-brand-bg/60 border border-brand-accent/50 rounded-xl cursor-pointer">
+                                <span class="text-xs text-brand-primary">Escolha o tom aproximado na tela</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Quantidade de Rolos</label>
+                            <input type="number" min="0" id="filRolls" required placeholder="Ex: 2" value="1"
+                                class="w-full px-4 py-3 bg-brand-bg/60 border border-brand-accent/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="submitFilamentBtn" class="w-full bg-brand-primary hover:bg-brand-dark text-white py-4 rounded-xl font-medium transition shadow-sm text-base flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Salvar Filamento no Estoque
+                    </button>
+                </form>
+            </div>
+
+            <!-- Listagem de Estoque -->
+            <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
+                <div class="mb-6 pb-4 border-b border-brand-accent/20">
+                    <h2 class="font-serif text-2xl font-bold text-brand-dark">Filamentos Cadastrados</h2>
+                    <p class="text-brand-primary text-sm">Controle de rolos disponíveis para produção.</p>
+                </div>
+
+                <div id="filamentsList" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+                <div id="filamentsLoading" class="text-center py-8 text-brand-primary text-sm">Carregando estoque de filamentos...</div>
             </div>
         </div>
 
@@ -295,65 +363,196 @@
 
         let allProducts = [];
         let allQueueItems = [];
+        let allFilaments = [];
 
         window.onload = function() {
             loadAdminProducts();
-            loadQueueItems();
-            generatePlateTimeInputs();
+            loadFilaments().then(() => {
+                loadQueueItems();
+                generatePlateTimeInputs();
+            });
         };
-
-        window.generatePlateTimeInputs = function(existingDetails = null) {
-            const platesCount = parseInt(document.getElementById('queuePlates').value) || 1;
-            const container = document.getElementById('plateInputsGrid');
-            container.innerHTML = '';
-
-            for (let i = 1; i <= platesCount; i++) {
-                let defaultTime = '';
-                let defaultUnits = 1;
-                if (existingDetails && existingDetails[i - 1]) {
-                    defaultTime = existingDetails[i - 1].time || '';
-                    defaultUnits = existingDetails[i - 1].units || 1;
-                }
-
-                const div = document.createElement('div');
-                div.className = "flex flex-col sm:flex-row items-center gap-2 bg-brand-card p-3 rounded-xl border border-brand-accent/30";
-                div.innerHTML = `
-                    <span class="text-xs font-bold text-brand-dark w-20">Placa ${i}:</span>
-                    <div class="flex items-center gap-2 w-full">
-                        <div class="flex-grow">
-                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Tempo da Placa</label>
-                            <input type="text" id="plateTime_${i}" value="${defaultTime}" required placeholder="Ex: 3h 30min"
-                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                        </div>
-                        <div class="w-32 flex-shrink-0">
-                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Qtd. Unidades</label>
-                            <input type="number" min="1" id="plateUnits_${i}" value="${defaultUnits}" required placeholder="Ex: 4"
-                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
-                        </div>
-                    </div>
-                `;
-                container.appendChild(div);
-            }
-        }
 
         window.switchTab = function(tab) {
             const productsSec = document.getElementById('sectionProducts');
             const queueSec = document.getElementById('sectionQueue');
+            const filamentsSec = document.getElementById('sectionFilaments');
+            
             const prodBtn = document.getElementById('tabProductsBtn');
             const queueBtn = document.getElementById('tabQueueBtn');
+            const filamentsBtn = document.getElementById('tabFilamentsBtn');
+
+            productsSec.classList.add('hidden');
+            queueSec.classList.add('hidden');
+            filamentsSec.classList.add('hidden');
+
+            prodBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark whitespace-nowrap";
+            queueBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark whitespace-nowrap";
+            filamentsBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark whitespace-nowrap";
 
             if (tab === 'products') {
                 productsSec.classList.remove('hidden');
-                queueSec.classList.add('hidden');
-                prodBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm";
-                queueBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark";
-            } else {
-                productsSec.classList.add('hidden');
+                prodBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm whitespace-nowrap";
+            } else if (tab === 'queue') {
                 queueSec.classList.remove('hidden');
-                queueBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm";
-                prodBtn.className = "px-4 py-2 rounded-lg text-xs font-semibold transition text-brand-primary hover:text-brand-dark";
+                queueBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm whitespace-nowrap";
+                renderQueueFilamentCheckboxes();
+            } else if (tab === 'filaments') {
+                filamentsSec.classList.remove('hidden');
+                filamentsBtn.className = "px-3 py-2 rounded-lg text-xs font-semibold transition bg-brand-primary text-white shadow-sm whitespace-nowrap";
             }
         }
+
+        // ================= ESTOQUE DE FILAMENTOS =================
+        async function loadFilaments() {
+            const container = document.getElementById('filamentsList');
+            const loading = document.getElementById('filamentsLoading');
+            try {
+                const querySnapshot = await getDocs(collection(db, "filaments"));
+                allFilaments = [];
+                querySnapshot.forEach((docSnap) => {
+                    allFilaments.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                if (loading) loading.classList.add('hidden');
+                container.innerHTML = '';
+
+                if (allFilaments.length === 0) {
+                    container.innerHTML = `<p class="col-span-full text-center text-brand-primary text-sm py-6">Nenhum filamento cadastrado no estoque.</p>`;
+                    return;
+                }
+
+                allFilaments.forEach(fil => {
+                    const card = document.createElement('div');
+                    card.className = "bg-brand-bg p-4 rounded-xl border border-brand-accent/30 flex items-center justify-between gap-3";
+                    
+                    const badgeRolls = fil.rolls > 0 
+                        ? `<span class="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">${fil.rolls} rolo(s)</span>`
+                        : `<span class="bg-red-100 text-red-800 border border-red-300 text-xs px-2.5 py-0.5 rounded-full font-semibold">Esgotado (0)</span>`;
+
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="w-8 h-8 rounded-full border border-brand-dark/30 shadow-sm flex-shrink-0" style="background-color: ${fil.colorCode};"></span>
+                            <div>
+                                <h3 class="font-serif font-bold text-brand-dark text-sm">${fil.name}</h3>
+                                ${badgeRolls}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button onclick="prepareFilamentEdit('${fil.id}')" class="p-2 bg-brand-card border border-brand-accent/50 text-brand-dark text-xs rounded-lg hover:bg-brand-accent/20 transition">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button onclick="deleteFilament('${fil.id}')" class="p-2 bg-red-50 text-red-600 border border-red-200 text-xs rounded-lg hover:bg-red-100 transition">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (error) {
+                console.error("Erro ao carregar filamentos:", error);
+                if (loading) loading.textContent = "Erro ao carregar estoque de filamentos.";
+            }
+        }
+
+        window.saveFilament = async function(event) {
+            event.preventDefault();
+            const btn = document.getElementById('submitFilamentBtn');
+            const editingId = document.getElementById('editingFilamentId').value;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Salvando...`;
+
+            const filamentData = {
+                name: document.getElementById('filName').value,
+                colorCode: document.getElementById('filColorCode').value,
+                rolls: parseInt(document.getElementById('filRolls').value) || 0
+            };
+
+            try {
+                if (editingId) {
+                    await updateDoc(doc(db, "filaments", editingId), filamentData);
+                    alert("Filamento atualizado com sucesso!");
+                } else {
+                    await addDoc(collection(db, "filaments"), filamentData);
+                    alert("Filamento cadastrado com sucesso!");
+                }
+                resetFilamentForm();
+                loadFilaments();
+                renderQueueFilamentCheckboxes();
+            } catch (error) {
+                console.error("Erro ao salvar filamento:", error);
+                alert("Erro ao salvar filamento.");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-plus"></i> Salvar Filamento no Estoque`;
+            }
+        }
+
+        window.prepareFilamentEdit = function(id) {
+            const fil = allFilaments.find(f => f.id === id);
+            if (!fil) return;
+
+            document.getElementById('editingFilamentId').value = fil.id;
+            document.getElementById('filName').value = fil.name || '';
+            document.getElementById('filColorCode').value = fil.colorCode || '#D4AF37';
+            document.getElementById('filRolls').value = fil.rolls || 0;
+
+            document.getElementById('filamentFormTitle').textContent = "Editar Filamento";
+            document.getElementById('submitFilamentBtn').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações`;
+            document.getElementById('cancelFilamentEditBtn').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.resetFilamentForm = function() {
+            document.getElementById('filamentForm').reset();
+            document.getElementById('editingFilamentId').value = '';
+            document.getElementById('filColorCode').value = '#D4AF37';
+            document.getElementById('filamentFormTitle').innerHTML = `<i class="fa-solid fa-palette text-brand-primary mr-2"></i> Cadastrar Cor de Filamento`;
+            document.getElementById('submitFilamentBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Salvar Filamento no Estoque`;
+            document.getElementById('cancelFilamentEditBtn').classList.add('hidden');
+        }
+
+        window.deleteFilament = async function(id) {
+            if (!confirm("Deseja excluir este filamento do estoque?")) return;
+            try {
+                await deleteDoc(doc(db, "filaments", id));
+                alert("Filamento excluído!");
+                loadFilaments();
+                renderQueueFilamentCheckboxes();
+            } catch (error) {
+                console.error("Erro ao excluir filamento:", error);
+                alert("Erro ao excluir filamento.");
+            }
+        }
+
+        // Renderizar checkboxes de filamentos no formulário da fila
+        window.renderQueueFilamentCheckboxes = function(selectedIds = []) {
+            const container = document.getElementById('queueFilamentsSelectContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (allFilaments.length === 0) {
+                container.innerHTML = `<p class="text-xs text-brand-primary italic">Nenhum filamento cadastrado no estoque. Vá na aba "Estoque Filamentos" primeiro.</p>`;
+                return;
+            }
+
+            allFilaments.forEach(fil => {
+                const isChecked = selectedIds.includes(fil.id) ? 'checked' : '';
+                const stockStatus = fil.rolls > 0 ? `(${fil.rolls} rolos)` : `(Esgotado)`;
+                
+                const label = document.createElement('label');
+                label.className = "flex items-center gap-2 bg-brand-card px-3 py-2 rounded-xl border border-brand-accent/40 text-xs cursor-pointer shadow-sm";
+                label.innerHTML = `
+                    <input type="checkbox" value="${fil.id}" ${isChecked} class="queue-filament-chk rounded text-brand-primary focus:ring-brand-primary/50">
+                    <span class="w-4 h-4 rounded-full border border-dark/20 inline-block" style="background-color: ${fil.colorCode};"></span>
+                    <span class="font-medium text-brand-dark">${fil.name}</span>
+                    <span class="text-[10px] text-brand-primary">${stockStatus}</span>
+                `;
+                container.appendChild(label);
+            });
+        }
+
 
         // ================= FUNÇÕES DE PRODUTOS =================
         async function loadAdminProducts() {
@@ -514,6 +713,40 @@
             return totalHours;
         }
 
+        window.generatePlateTimeInputs = function(existingDetails = null) {
+            const platesCount = parseInt(document.getElementById('queuePlates').value) || 1;
+            const container = document.getElementById('plateInputsGrid');
+            container.innerHTML = '';
+
+            for (let i = 1; i <= platesCount; i++) {
+                let defaultTime = '';
+                let defaultUnits = 1;
+                if (existingDetails && existingDetails[i - 1]) {
+                    defaultTime = existingDetails[i - 1].time || '';
+                    defaultUnits = existingDetails[i - 1].units || 1;
+                }
+
+                const div = document.createElement('div');
+                div.className = "flex flex-col sm:flex-row items-center gap-2 bg-brand-card p-3 rounded-xl border border-brand-accent/30";
+                div.innerHTML = `
+                    <span class="text-xs font-bold text-brand-dark w-20">Placa ${i}:</span>
+                    <div class="flex items-center gap-2 w-full">
+                        <div class="flex-grow">
+                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Tempo da Placa</label>
+                            <input type="text" id="plateTime_${i}" value="${defaultTime}" required placeholder="Ex: 3h 30min"
+                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                        <div class="w-32 flex-shrink-0">
+                            <label class="block text-[10px] uppercase text-brand-primary font-semibold mb-1">Qtd. Unidades</label>
+                            <input type="number" min="1" id="plateUnits_${i}" value="${defaultUnits}" required placeholder="Ex: 4"
+                                class="w-full px-3 py-2 bg-brand-bg border border-brand-accent/50 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-primary/50 text-brand-dark">
+                        </div>
+                    </div>
+                `;
+                container.appendChild(div);
+            }
+        }
+
         async function loadQueueItems() {
             const queueList = document.getElementById('queueList');
             const queueLoading = document.getElementById('queueLoading');
@@ -552,6 +785,34 @@
                     if (item.payment === "Pago Total") badgeColor = "bg-emerald-100 text-emerald-800 border-emerald-300";
                     if (item.payment === "Pendente") badgeColor = "bg-red-100 text-red-800 border-red-300";
 
+                    // Renderizar cores com indicador de disponibilidade no estoque
+                    let filamentsHtml = '';
+                    if (item.filamentIds && item.filamentIds.length > 0) {
+                        filamentsHtml = `<div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span class="text-[11px] font-semibold text-brand-primary uppercase">Cores:</span>`;
+                        
+                        item.filamentIds.forEach(filId => {
+                            const stockFil = allFilaments.find(f => f.id === filId);
+                            if (stockFil) {
+                                const isAvailable = stockFil.rolls > 0;
+                                const statusText = isAvailable ? `Disponível (${stockFil.rolls} rolos)` : `ESGOTADO (0 rolos)`;
+                                
+                                // Estilo se estiver esgotado: barra cortada por cima (linha através) e opacidade reduzida
+                                const styleExtras = isAvailable 
+                                    ? `background-color: ${stockFil.colorCode};` 
+                                    : `background-color: ${stockFil.colorCode}; opacity: 0.4; text-decoration: line-through;`;
+
+                                filamentsHtml += `
+                                    <span onclick="alert('Filamento: ${stockFil.name}\\nStatus: ${statusText}')" title="${stockFil.name} - ${statusText}" class="w-5 h-5 rounded-full inline-block border-2 border-brand-dark/40 cursor-pointer shadow-sm relative transform hover:scale-110 transition flex items-center justify-center" style="${styleExtras}">
+                                        ${!isAvailable ? '<i class="fa-solid fa-slash text-red-600 text-[10px] absolute"></i>' : ''}
+                                    </span>
+                                    <span class="text-xs font-medium text-brand-dark">${stockFil.name}</span>
+                                `;
+                            }
+                        });
+                        filamentsHtml += `</div>`;
+                    }
+
                     let platesHtml = '';
                     if (item.platesDetails && item.platesDetails.length > 0) {
                         platesHtml = `<div class="flex flex-wrap items-center gap-2 mt-2 pt-2 border-t border-brand-accent/20">
@@ -583,6 +844,7 @@
                                 <span class="text-xs px-2.5 py-0.5 rounded-full font-semibold border ${badgeColor}">${item.payment}</span>
                             </div>
                             <p class="text-xs text-brand-primary"><i class="fa-solid fa-user mr-1"></i> Cliente: <strong>${item.client}</strong> • Qtd Total: <strong>${item.qty} un</strong></p>
+                            ${filamentsHtml}
                             ${platesHtml}
                         </div>
                         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto flex-shrink-0">
@@ -620,6 +882,12 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Salvando...`;
 
+            // Obter IDs dos filamentos selecionados
+            let selectedFilamentIds = [];
+            document.querySelectorAll('.queue-filament-chk:checked').forEach(chk => {
+                selectedFilamentIds.push(chk.value);
+            });
+
             const platesCount = parseInt(document.getElementById('queuePlates').value) || 1;
             let platesDetails = [];
 
@@ -644,6 +912,7 @@
                 product: document.getElementById('queueProduct').value,
                 qty: parseInt(document.getElementById('queueQty').value),
                 plates: platesCount,
+                filamentIds: selectedFilamentIds,
                 platesDetails: platesDetails,
                 totalPrice: parseFloat(document.getElementById('queueTotalPrice').value),
                 payment: document.getElementById('queuePayment').value
@@ -682,6 +951,7 @@
             document.getElementById('queueTotalPrice').value = item.totalPrice || '';
             document.getElementById('queuePayment').value = item.payment || '50% de Entrada';
 
+            renderQueueFilamentCheckboxes(item.filamentIds || []);
             generatePlateTimeInputs(item.platesDetails);
 
             document.getElementById('queueFormTitle').textContent = "Editar Pedido na Fila";
@@ -698,10 +968,12 @@
             document.getElementById('queueQty').value = "1";
             document.getElementById('queuePlates').value = "1";
             document.getElementById('queuePriority').value = "1";
+            
+            renderQueueFilamentCheckboxes();
             generatePlateTimeInputs();
 
             document.getElementById('queueFormTitle').innerHTML = `<i class="fa-solid fa-print text-brand-primary mr-2"></i> Lançar Pedido na Fila`;
-            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, quantidade total, placas e os tempos.";
+            document.getElementById('queueFormSubtitle').textContent = "Defina a prioridade, quantidade, placas, tempos e cores de filamento.";
             document.getElementById('submitQueueBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Adicionar à Fila de Impressão`;
             document.getElementById('cancelQueueEditBtn').classList.add('hidden');
         }
