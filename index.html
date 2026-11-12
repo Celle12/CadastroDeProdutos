@@ -339,15 +339,22 @@
             </div>
         </div>
 
-        <!-- SEÇÃO 4: POSSÍVEIS ENCOMENDAS (NOVA ABA) -->
+        <!-- SEÇÃO 4: POSSÍVEIS ENCOMENDAS -->
         <div id="sectionPossibles" class="space-y-8 hidden">
             <div class="bg-brand-card border border-brand-accent/40 rounded-2xl p-6 sm:p-8 shadow-sm">
-                <div class="mb-6 pb-4 border-b border-brand-accent/20">
-                    <h2 class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-clock-rotate-left text-brand-primary mr-2"></i> Registrar Possível Encomenda</h2>
-                    <p class="text-brand-primary text-sm">Anote consultas de clientes para avaliar prazos e viabilidade antes de confirmar na fila.</p>
+                <div class="mb-6 pb-4 border-b border-brand-accent/20 flex justify-between items-center">
+                    <div>
+                        <h2 id="possibleFormTitle" class="font-serif text-2xl font-bold text-brand-dark"><i class="fa-solid fa-clock-rotate-left text-brand-primary mr-2"></i> Registrar Possível Encomenda</h2>
+                        <p id="possibleFormSubtitle" class="text-brand-primary text-sm">Anote consultas de clientes para avaliar prazos e viabilidade.</p>
+                    </div>
+                    <button type="button" id="cancelPossibleEditBtn" onclick="resetPossibleForm()" class="hidden text-xs bg-red-100 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-200 transition">
+                        Cancelar Edição
+                    </button>
                 </div>
 
                 <form id="possibleForm" onsubmit="savePossibleOrder(event)" class="space-y-6">
+                    <input type="hidden" id="editingPossibleId" value="">
+
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-xs uppercase tracking-wider text-brand-primary font-semibold mb-2">Nome do Cliente</label>
@@ -493,8 +500,11 @@
                             <p class="text-xs text-brand-dark"><i class="fa-regular fa-calendar mr-1"></i> Prazo desejado: <strong>${item.deadline}</strong></p>
                         </div>
                         <div class="flex items-center gap-2">
+                            <button onclick="preparePossibleEdit('${item.id}')" class="px-3 py-2 bg-brand-card border border-brand-accent/50 text-brand-dark text-xs rounded-lg hover:bg-brand-accent/20 transition flex items-center gap-1">
+                                <i class="fa-solid fa-pen"></i> Editar
+                            </button>
                             <button onclick="deletePossibleOrder('${item.id}')" class="px-3 py-2 bg-red-50 text-red-600 border border-red-200 text-xs rounded-lg hover:bg-red-100 transition flex items-center gap-1">
-                                <i class="fa-solid fa-trash"></i> Excluir / Fechar
+                                <i class="fa-solid fa-trash"></i> Excluir
                             </button>
                         </div>
                     `;
@@ -509,20 +519,27 @@
         window.savePossibleOrder = async function(event) {
             event.preventDefault();
             const btn = document.getElementById('submitPossibleBtn');
+            const editingId = document.getElementById('editingPossibleId').value;
+            
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Salvando...`;
 
             const possibleData = {
                 client: document.getElementById('possClient').value,
                 product: document.getElementById('possProduct').value,
-                deadline: document.getElementById('possDeadline').value,
-                createdAt: new Date()
+                deadline: document.getElementById('possDeadline').value
             };
 
             try {
-                await addDoc(collection(db, "possibleOrders"), possibleData);
-                alert("Possível encomenda registrada com sucesso!");
-                document.getElementById('possibleForm').reset();
+                if (editingId) {
+                    await updateDoc(doc(db, "possibleOrders", editingId), possibleData);
+                    alert("Possível encomenda atualizada com sucesso!");
+                } else {
+                    possibleData.createdAt = new Date();
+                    await addDoc(collection(db, "possibleOrders"), possibleData);
+                    alert("Possível encomenda registrada com sucesso!");
+                }
+                resetPossibleForm();
                 loadPossibleOrders();
             } catch (error) {
                 console.error("Erro ao salvar possível encomenda:", error);
@@ -531,6 +548,33 @@
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-plus"></i> Salvar Possível Encomenda`;
             }
+        }
+
+        window.preparePossibleEdit = function(id) {
+            const item = allPossibles.find(p => p.id === id);
+            if (!item) return;
+
+            document.getElementById('editingPossibleId').value = item.id;
+            document.getElementById('possClient').value = item.client || '';
+            document.getElementById('possProduct').value = item.product || '';
+            document.getElementById('possDeadline').value = item.deadline || '';
+
+            document.getElementById('possibleFormTitle').textContent = "Editar Possível Encomenda";
+            document.getElementById('possibleFormSubtitle').textContent = `Editando encomenda de: ${item.client}`;
+            document.getElementById('submitPossibleBtn').innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Salvar Alterações`;
+            document.getElementById('cancelPossibleEditBtn').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.resetPossibleForm = function() {
+            document.getElementById('possibleForm').reset();
+            document.getElementById('editingPossibleId').value = '';
+
+            document.getElementById('possibleFormTitle').innerHTML = `<i class="fa-solid fa-clock-rotate-left text-brand-primary mr-2"></i> Registrar Possível Encomenda`;
+            document.getElementById('possibleFormSubtitle').textContent = "Anote consultas de clientes para avaliar prazos e viabilidade.";
+            document.getElementById('submitPossibleBtn').innerHTML = `<i class="fa-solid fa-plus"></i> Salvar Possível Encomenda`;
+            document.getElementById('cancelPossibleEditBtn').classList.add('hidden');
         }
 
         window.deletePossibleOrder = async function(id) {
